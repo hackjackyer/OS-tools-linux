@@ -1,0 +1,49 @@
+#!/bin/bash
+#by hackjackyer
+echo syncing time
+rpm -qa ntp |grep ntp|| yum install -y ntp
+ntpdate 1.1.1.1
+hwclock -w
+
+clear
+echo formating sdb
+#建立lvm分区
+dd if=/dev/sdb of=/dev/backsdb_img_count1024 count=1024
+dd if=/dev/zero of=/dev/sdb count=1024
+fdisk /dev/sdb << EOF
+n
+p
+1
+
+
+t
+8e
+w
+EOF
+
+#检查系统版本
+cbanben=`rpm -q centos-release |awk -F - '{print $3}'`
+
+#扩展分区容量
+vgname=`vgdisplay |grep "VG Name" |awk -F " " '{print $3}'`
+
+pvcreate /dev/sdb1
+vgextend $vgname /dev/sdb1
+
+if [ $cbanben -eq 7 ]; then
+lvextend -l +100%FREE /dev/dm-0
+xfs_growfs /dev/dm-0
+fi
+
+if [ $cbanben -eq 6 ]; then
+lvextend -l +100%FREE /dev/dm-0
+resize2fs /dev/dm-0
+fi
+
+
+if [ $cbanben -eq 5 ]; then
+lvextend -l +100%FREE /dev/VolGroup00/LogVol00
+resize2fs /dev/VolGroup00/LogVol00
+fi
+
+#lvdisplay |grep "LV Path" |grep root |awk -F " " '{print $3}'

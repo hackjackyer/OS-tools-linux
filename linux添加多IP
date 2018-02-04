@@ -1,0 +1,87 @@
+#!/bin/bash
+clear
+rpm -q centos-release 1>/dev/null 2>&1 && banben=centos || banben=ubuntu
+  
+if [ "$banben" == "ubuntu" ];then
+#这里，因为大家不习惯ubuntu里面删除要按住Ctrl，所以，更改模式，可以直接操作删除。
+	stty erase ^h
+	cp /etc/network/interfaces /etc/network/interfaces.raw
+	echo "please select NO"
+	ping -c 4 127.0.0.1 1>/dev/null 2>&1
+  #由于ubuntu采用的是dash不是bash,所以有些指令不能执行。在弹出的界面，选NO，更改为bash
+	dpkg-reconfigure dash
+	clear
+	cat /etc/network/interfaces |grep auto
+	j=1
+	read -p "the first IP No.:" ui
+	read -p "the nums of sub IP:" unum
+	read -p "the NIC name:" unic
+	while [ $j -le $unum ]
+		do
+		echo auto $unic:$ui>>/etc/network/interfaces
+		echo iface $unic:$ui inet static>>/etc/network/interfaces
+		read -p "the ip is:" uipnum
+		echo address $uipnum>>/etc/network/interfaces
+		echo netmask 255.255.255.0 >>/etc/network/interfaces
+		let ui+=1
+		let j+=1
+	done
+	/etc/init.d/networking restart
+	clear
+	echo "please select YES"
+	ping -c 4 127.0.0.1 1>/dev/null 2>&1
+	dpkg-reconfigure dash
+	stty erase ^?
+	exit 0
+fi
+
+if [ "$banben" == "centos" ];then
+# 不加入下面的命令的话，执行的时候，按Backspace会变成^h
+	stty erase ^h
+	cbanben=`rpm -q centos-release |awk -F - '{print $3}'`
+#	rpm -qa|grep -w bc || yum install bc -y 1>/dev/null 2>&1
+#	if [ $(echo "$cbanben<7"|bc) = 1 ];then
+	if [ $cbanben -lt 7 ];   then
+   		clear
+		ifconfig |grep eth |awk '{print $1}'
+		j=1
+		read -p "the first IP No.:" i
+		read -p "the nums of sub IP:" num
+		read -p "the NIC name:" nic
+		while [ $j -le $num ]
+			do
+			echo DEVICE=$nic:$i >>/etc/sysconfig/network-scripts/ifcfg-$nic:$i
+		        echo TYPE=Ethernet >>/etc/sysconfig/network-scripts/ifcfg-$nic:$i
+		        echo ONBOOT=yes >>/etc/sysconfig/network-scripts/ifcfg-$nic:$i
+		        echo BOOTPROTO=static >>/etc/sysconfig/network-scripts/ifcfg-$nic:$i
+		        read -p "Please input the ip:" ipnum
+		        echo IPADDR=$ipnum >>/etc/sysconfig/network-scripts/ifcfg-$nic:$i
+		        echo NETMASK=255.255.255.0 >>/etc/sysconfig/network-scripts/ifcfg-$nic:$i
+		        ifup $nic:$i
+		        let i+=1
+		        let j+=1
+		done
+		exit 0
+	fi
+
+#	if [ $(echo "$cbanben>=7"|bc) = 1 ];then
+	if [ $cbanben -ge 7 ];then
+		clear
+		ip addr
+		nmcli connection show
+		j=1
+		read -p "the numbers of sub IP" cnum
+		read -p "input the interface name (exp. eth0):" cnic
+		while [ $j -le $cnum ]
+			do
+			read -p "Please input the ip:" cipnum
+			nmcli connection modify "$cnic" +ipv4.addresses $cipnum/24
+			nmcli connection up "$cnic"
+			let j+=1
+		done
+		exit 0
+	fi
+#恢复Backspace ^H
+	stty erase ^?
+fi
+exit 0

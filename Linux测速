@@ -1,0 +1,809 @@
+#!/bin/bash
+# edit by hackjackyer
+#因为这个程序基于py的，所以需要安装py环境
+rpm -qa |grep python 1>/etc/null 2>&1 && echo "python has already installed" || yum -y install python
+sleep 3
+#将py指令输出到speedtest.py文件
+echo "#!/usr/bin/env python" >>speedtest.py
+echo "# -*- coding: utf-8 -*-" >>speedtest.py
+echo "# Copyright 2012-2015 Matt Martz" >>speedtest.py
+echo "# All Rights Reserved." >>speedtest.py
+echo "#" >>speedtest.py
+echo "#    Licensed under the Apache License, Version 2.0 (the \"License\"); you may" >>speedtest.py
+echo "#    not use this file except in compliance with the License. You may obtain" >>speedtest.py
+echo "#    a copy of the License at" >>speedtest.py
+echo "#" >>speedtest.py
+echo "#         http://www.apache.org/licenses/LICENSE-2.0" >>speedtest.py
+echo "#" >>speedtest.py
+echo "#    Unless required by applicable law or agreed to in writing, software" >>speedtest.py
+echo "#    distributed under the License is distributed on an \"AS IS\" BASIS, WITHOUT" >>speedtest.py
+echo "#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the" >>speedtest.py
+echo "#    License for the specific language governing permissions and limitations" >>speedtest.py
+echo "#    under the License." >>speedtest.py
+echo "" >>speedtest.py
+echo "import os" >>speedtest.py
+echo "import re" >>speedtest.py
+echo "import sys" >>speedtest.py
+echo "import math" >>speedtest.py
+echo "import signal" >>speedtest.py
+echo "import socket" >>speedtest.py
+echo "import timeit" >>speedtest.py
+echo "import platform" >>speedtest.py
+echo "import threading" >>speedtest.py
+echo "" >>speedtest.py
+echo "__version__ = '0.3.4'" >>speedtest.py
+echo "" >>speedtest.py
+echo "# Some global variables we use" >>speedtest.py
+echo "user_agent = None" >>speedtest.py
+echo "source = None" >>speedtest.py
+echo "shutdown_event = None" >>speedtest.py
+echo "scheme = 'http'" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "# Used for bound_interface" >>speedtest.py
+echo "socket_socket = socket.socket" >>speedtest.py
+echo "" >>speedtest.py
+echo "try:" >>speedtest.py
+echo "    import xml.etree.cElementTree as ET" >>speedtest.py
+echo "except ImportError:" >>speedtest.py
+echo "    try:" >>speedtest.py
+echo "        import xml.etree.ElementTree as ET" >>speedtest.py
+echo "    except ImportError:" >>speedtest.py
+echo "        from xml.dom import minidom as DOM" >>speedtest.py
+echo "        ET = None" >>speedtest.py
+echo "" >>speedtest.py
+echo "# Begin import game to handle Python 2 and Python 3" >>speedtest.py
+echo "try:" >>speedtest.py
+echo "    from urllib2 import urlopen, Request, HTTPError, URLError" >>speedtest.py
+echo "except ImportError:" >>speedtest.py
+echo "    from urllib.request import urlopen, Request, HTTPError, URLError" >>speedtest.py
+echo "" >>speedtest.py
+echo "try:" >>speedtest.py
+echo "    from httplib import HTTPConnection, HTTPSConnection" >>speedtest.py
+echo "except ImportError:" >>speedtest.py
+echo "    e_http_py2 = sys.exc_info()" >>speedtest.py
+echo "    try:" >>speedtest.py
+echo "        from http.client import HTTPConnection, HTTPSConnection" >>speedtest.py
+echo "    except ImportError:" >>speedtest.py
+echo "        e_http_py3 = sys.exc_info()" >>speedtest.py
+echo "        raise SystemExit('Your python installation is missing required HTTP '" >>speedtest.py
+echo "                         'client classes:\n\n'" >>speedtest.py
+echo "                         'Python 2: %s\n'" >>speedtest.py
+echo "                         'Python 3: %s' % (e_http_py2[1], e_http_py3[1]))" >>speedtest.py
+echo "" >>speedtest.py
+echo "try:" >>speedtest.py
+echo "    from Queue import Queue" >>speedtest.py
+echo "except ImportError:" >>speedtest.py
+echo "    from queue import Queue" >>speedtest.py
+echo "" >>speedtest.py
+echo "try:" >>speedtest.py
+echo "    from urlparse import urlparse" >>speedtest.py
+echo "except ImportError:" >>speedtest.py
+echo "    from urllib.parse import urlparse" >>speedtest.py
+echo "" >>speedtest.py
+echo "try:" >>speedtest.py
+echo "    from urlparse import parse_qs" >>speedtest.py
+echo "except ImportError:" >>speedtest.py
+echo "    try:" >>speedtest.py
+echo "        from urllib.parse import parse_qs" >>speedtest.py
+echo "    except ImportError:" >>speedtest.py
+echo "        from cgi import parse_qs" >>speedtest.py
+echo "" >>speedtest.py
+echo "try:" >>speedtest.py
+echo "    from hashlib import md5" >>speedtest.py
+echo "except ImportError:" >>speedtest.py
+echo "    from md5 import md5" >>speedtest.py
+echo "" >>speedtest.py
+echo "try:" >>speedtest.py
+echo "    from argparse import ArgumentParser as ArgParser" >>speedtest.py
+echo "except ImportError:" >>speedtest.py
+echo "    from optparse import OptionParser as ArgParser" >>speedtest.py
+echo "" >>speedtest.py
+echo "try:" >>speedtest.py
+echo "    import builtins" >>speedtest.py
+echo "except ImportError:" >>speedtest.py
+echo "    def print_(*args, **kwargs):" >>speedtest.py
+echo "        \"\"\"The new-style print function taken from" >>speedtest.py
+echo "        https://pypi.python.org/pypi/six/" >>speedtest.py
+echo "" >>speedtest.py
+echo "        \"\"\"" >>speedtest.py
+echo "        fp = kwargs.pop(\"file\", sys.stdout)" >>speedtest.py
+echo "        if fp is None:" >>speedtest.py
+echo "            return" >>speedtest.py
+echo "" >>speedtest.py
+echo "        def write(data):" >>speedtest.py
+echo "            if not isinstance(data, basestring):" >>speedtest.py
+echo "                data = str(data)" >>speedtest.py
+echo "            fp.write(data)" >>speedtest.py
+echo "" >>speedtest.py
+echo "        want_unicode = False" >>speedtest.py
+echo "        sep = kwargs.pop(\"sep\", None)" >>speedtest.py
+echo "        if sep is not None:" >>speedtest.py
+echo "            if isinstance(sep, unicode):" >>speedtest.py
+echo "                want_unicode = True" >>speedtest.py
+echo "            elif not isinstance(sep, str):" >>speedtest.py
+echo "                raise TypeError(\"sep must be None or a string\")" >>speedtest.py
+echo "        end = kwargs.pop(\"end\", None)" >>speedtest.py
+echo "        if end is not None:" >>speedtest.py
+echo "            if isinstance(end, unicode):" >>speedtest.py
+echo "                want_unicode = True" >>speedtest.py
+echo "            elif not isinstance(end, str):" >>speedtest.py
+echo "                raise TypeError(\"end must be None or a string\")" >>speedtest.py
+echo "        if kwargs:" >>speedtest.py
+echo "            raise TypeError(\"invalid keyword arguments to print()\")" >>speedtest.py
+echo "        if not want_unicode:" >>speedtest.py
+echo "            for arg in args:" >>speedtest.py
+echo "                if isinstance(arg, unicode):" >>speedtest.py
+echo "                    want_unicode = True" >>speedtest.py
+echo "                    break" >>speedtest.py
+echo "        if want_unicode:" >>speedtest.py
+echo "            newline = unicode(\"\n\")" >>speedtest.py
+echo "            space = unicode(\" \")" >>speedtest.py
+echo "        else:" >>speedtest.py
+echo "            newline = \"\n\"" >>speedtest.py
+echo "            space = \" \"" >>speedtest.py
+echo "        if sep is None:" >>speedtest.py
+echo "            sep = space" >>speedtest.py
+echo "        if end is None:" >>speedtest.py
+echo "            end = newline" >>speedtest.py
+echo "        for i, arg in enumerate(args):" >>speedtest.py
+echo "            if i:" >>speedtest.py
+echo "                write(sep)" >>speedtest.py
+echo "            write(arg)" >>speedtest.py
+echo "        write(end)" >>speedtest.py
+echo "else:" >>speedtest.py
+echo "    print_ = getattr(builtins, 'print')" >>speedtest.py
+echo "    del builtins" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "class SpeedtestCliServerListError(Exception):" >>speedtest.py
+echo "    \"\"\"Internal Exception class used to indicate to move on to the next" >>speedtest.py
+echo "    URL for retrieving speedtest.net server details" >>speedtest.py
+echo "" >>speedtest.py
+echo "    \"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def bound_socket(*args, **kwargs):" >>speedtest.py
+echo "    \"\"\"Bind socket to a specified source IP address\"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    global source" >>speedtest.py
+echo "    sock = socket_socket(*args, **kwargs)" >>speedtest.py
+echo "    sock.bind((source, 0))" >>speedtest.py
+echo "    return sock" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def distance(origin, destination):" >>speedtest.py
+echo "    \"\"\"Determine distance between 2 sets of [lat,lon] in km\"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    lat1, lon1 = origin" >>speedtest.py
+echo "    lat2, lon2 = destination" >>speedtest.py
+echo "    radius = 6371  # km" >>speedtest.py
+echo "" >>speedtest.py
+echo "    dlat = math.radians(lat2 - lat1)" >>speedtest.py
+echo "    dlon = math.radians(lon2 - lon1)" >>speedtest.py
+echo "    a = (math.sin(dlat / 2) * math.sin(dlat / 2) +" >>speedtest.py
+echo "         math.cos(math.radians(lat1)) *" >>speedtest.py
+echo "         math.cos(math.radians(lat2)) * math.sin(dlon / 2) *" >>speedtest.py
+echo "         math.sin(dlon / 2))" >>speedtest.py
+echo "    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))" >>speedtest.py
+echo "    d = radius * c" >>speedtest.py
+echo "" >>speedtest.py
+echo "    return d" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def build_user_agent():" >>speedtest.py
+echo "    \"\"\"Build a Mozilla/5.0 compatible User-Agent string\"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    global user_agent" >>speedtest.py
+echo "    if user_agent:" >>speedtest.py
+echo "        return user_agent" >>speedtest.py
+echo "" >>speedtest.py
+echo "    ua_tuple = (" >>speedtest.py
+echo "        'Mozilla/5.0'," >>speedtest.py
+echo "        '(%s; U; %s; en-us)' % (platform.system(), platform.architecture()[0])," >>speedtest.py
+echo "        'Python/%s' % platform.python_version()," >>speedtest.py
+echo "        '(KHTML, like Gecko)'," >>speedtest.py
+echo "        'speedtest-cli/%s' % __version__" >>speedtest.py
+echo "    )" >>speedtest.py
+echo "    user_agent = ' '.join(ua_tuple)" >>speedtest.py
+echo "    return user_agent" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def build_request(url, data=None, headers={}):" >>speedtest.py
+echo "    \"\"\"Build a urllib2 request object" >>speedtest.py
+echo "" >>speedtest.py
+echo "    This function automatically adds a User-Agent header to all requests" >>speedtest.py
+echo "" >>speedtest.py
+echo "    \"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    if url[0] == ':':" >>speedtest.py
+echo "        schemed_url = '%s%s' % (scheme, url)" >>speedtest.py
+echo "    else:" >>speedtest.py
+echo "        schemed_url = url" >>speedtest.py
+echo "" >>speedtest.py
+echo "    headers['User-Agent'] = user_agent" >>speedtest.py
+echo "    return Request(schemed_url, data=data, headers=headers)" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def catch_request(request):" >>speedtest.py
+echo "    \"\"\"Helper function to catch common exceptions encountered when" >>speedtest.py
+echo "    establishing a connection with a HTTP/HTTPS request" >>speedtest.py
+echo "" >>speedtest.py
+echo "    \"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    try:" >>speedtest.py
+echo "        uh = urlopen(request)" >>speedtest.py
+echo "        return uh, False" >>speedtest.py
+echo "    except (HTTPError, URLError, socket.error):" >>speedtest.py
+echo "        e = sys.exc_info()[1]" >>speedtest.py
+echo "        return None, e" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "class FileGetter(threading.Thread):" >>speedtest.py
+echo "    \"\"\"Thread class for retrieving a URL\"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    def __init__(self, url, start):" >>speedtest.py
+echo "        self.url = url" >>speedtest.py
+echo "        self.result = None" >>speedtest.py
+echo "        self.starttime = start" >>speedtest.py
+echo "        threading.Thread.__init__(self)" >>speedtest.py
+echo "" >>speedtest.py
+echo "    def run(self):" >>speedtest.py
+echo "        self.result = [0]" >>speedtest.py
+echo "        try:" >>speedtest.py
+echo "            if (timeit.default_timer() - self.starttime) <= 10:" >>speedtest.py
+echo "                request = build_request(self.url)" >>speedtest.py
+echo "                f = urlopen(request)" >>speedtest.py
+echo "                while 1 and not shutdown_event.isSet():" >>speedtest.py
+echo "                    self.result.append(len(f.read(10240)))" >>speedtest.py
+echo "                    if self.result[-1] == 0:" >>speedtest.py
+echo "                        break" >>speedtest.py
+echo "                f.close()" >>speedtest.py
+echo "        except IOError:" >>speedtest.py
+echo "            pass" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def downloadSpeed(files, quiet=False):" >>speedtest.py
+echo "    \"\"\"Function to launch FileGetter threads and calculate download speeds\"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    start = timeit.default_timer()" >>speedtest.py
+echo "" >>speedtest.py
+echo "    def producer(q, files):" >>speedtest.py
+echo "        for file in files:" >>speedtest.py
+echo "            thread = FileGetter(file, start)" >>speedtest.py
+echo "            thread.start()" >>speedtest.py
+echo "            q.put(thread, True)" >>speedtest.py
+echo "            if not quiet and not shutdown_event.isSet():" >>speedtest.py
+echo "                sys.stdout.write('.')" >>speedtest.py
+echo "                sys.stdout.flush()" >>speedtest.py
+echo "" >>speedtest.py
+echo "    finished = []" >>speedtest.py
+echo "" >>speedtest.py
+echo "    def consumer(q, total_files):" >>speedtest.py
+echo "        while len(finished) < total_files:" >>speedtest.py
+echo "            thread = q.get(True)" >>speedtest.py
+echo "            while thread.isAlive():" >>speedtest.py
+echo "                thread.join(timeout=0.1)" >>speedtest.py
+echo "            finished.append(sum(thread.result))" >>speedtest.py
+echo "            del thread" >>speedtest.py
+echo "" >>speedtest.py
+echo "    q = Queue(6)" >>speedtest.py
+echo "    prod_thread = threading.Thread(target=producer, args=(q, files))" >>speedtest.py
+echo "    cons_thread = threading.Thread(target=consumer, args=(q, len(files)))" >>speedtest.py
+echo "    start = timeit.default_timer()" >>speedtest.py
+echo "    prod_thread.start()" >>speedtest.py
+echo "    cons_thread.start()" >>speedtest.py
+echo "    while prod_thread.isAlive():" >>speedtest.py
+echo "        prod_thread.join(timeout=0.1)" >>speedtest.py
+echo "    while cons_thread.isAlive():" >>speedtest.py
+echo "        cons_thread.join(timeout=0.1)" >>speedtest.py
+echo "    return (sum(finished) / (timeit.default_timer() - start))" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "class FilePutter(threading.Thread):" >>speedtest.py
+echo "    \"\"\"Thread class for putting a URL\"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    def __init__(self, url, start, size):" >>speedtest.py
+echo "        self.url = url" >>speedtest.py
+echo "        chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'" >>speedtest.py
+echo "        data = chars * (int(round(int(size) / 36.0)))" >>speedtest.py
+echo "        self.data = ('content1=%s' % data[0:int(size) - 9]).encode()" >>speedtest.py
+echo "        del data" >>speedtest.py
+echo "        self.result = None" >>speedtest.py
+echo "        self.starttime = start" >>speedtest.py
+echo "        threading.Thread.__init__(self)" >>speedtest.py
+echo "" >>speedtest.py
+echo "    def run(self):" >>speedtest.py
+echo "        try:" >>speedtest.py
+echo "            if ((timeit.default_timer() - self.starttime) <= 10 and" >>speedtest.py
+echo "                    not shutdown_event.isSet()):" >>speedtest.py
+echo "                request = build_request(self.url, data=self.data)" >>speedtest.py
+echo "                f = urlopen(request)" >>speedtest.py
+echo "                f.read(11)" >>speedtest.py
+echo "                f.close()" >>speedtest.py
+echo "                self.result = len(self.data)" >>speedtest.py
+echo "            else:" >>speedtest.py
+echo "                self.result = 0" >>speedtest.py
+echo "        except IOError:" >>speedtest.py
+echo "            self.result = 0" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def uploadSpeed(url, sizes, quiet=False):" >>speedtest.py
+echo "    \"\"\"Function to launch FilePutter threads and calculate upload speeds\"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    start = timeit.default_timer()" >>speedtest.py
+echo "" >>speedtest.py
+echo "    def producer(q, sizes):" >>speedtest.py
+echo "        for size in sizes:" >>speedtest.py
+echo "            thread = FilePutter(url, start, size)" >>speedtest.py
+echo "            thread.start()" >>speedtest.py
+echo "            q.put(thread, True)" >>speedtest.py
+echo "            if not quiet and not shutdown_event.isSet():" >>speedtest.py
+echo "                sys.stdout.write('.')" >>speedtest.py
+echo "                sys.stdout.flush()" >>speedtest.py
+echo "" >>speedtest.py
+echo "    finished = []" >>speedtest.py
+echo "" >>speedtest.py
+echo "    def consumer(q, total_sizes):" >>speedtest.py
+echo "        while len(finished) < total_sizes:" >>speedtest.py
+echo "            thread = q.get(True)" >>speedtest.py
+echo "            while thread.isAlive():" >>speedtest.py
+echo "                thread.join(timeout=0.1)" >>speedtest.py
+echo "            finished.append(thread.result)" >>speedtest.py
+echo "            del thread" >>speedtest.py
+echo "" >>speedtest.py
+echo "    q = Queue(6)" >>speedtest.py
+echo "    prod_thread = threading.Thread(target=producer, args=(q, sizes))" >>speedtest.py
+echo "    cons_thread = threading.Thread(target=consumer, args=(q, len(sizes)))" >>speedtest.py
+echo "    start = timeit.default_timer()" >>speedtest.py
+echo "    prod_thread.start()" >>speedtest.py
+echo "    cons_thread.start()" >>speedtest.py
+echo "    while prod_thread.isAlive():" >>speedtest.py
+echo "        prod_thread.join(timeout=0.1)" >>speedtest.py
+echo "    while cons_thread.isAlive():" >>speedtest.py
+echo "        cons_thread.join(timeout=0.1)" >>speedtest.py
+echo "    return (sum(finished) / (timeit.default_timer() - start))" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def getAttributesByTagName(dom, tagName):" >>speedtest.py
+echo "    \"\"\"Retrieve an attribute from an XML document and return it in a" >>speedtest.py
+echo "    consistent format" >>speedtest.py
+echo "" >>speedtest.py
+echo "    Only used with xml.dom.minidom, which is likely only to be used" >>speedtest.py
+echo "    with python versions older than 2.5" >>speedtest.py
+echo "    \"\"\"" >>speedtest.py
+echo "    elem = dom.getElementsByTagName(tagName)[0]" >>speedtest.py
+echo "    return dict(list(elem.attributes.items()))" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def getConfig():" >>speedtest.py
+echo "    \"\"\"Download the speedtest.net configuration and return only the data" >>speedtest.py
+echo "    we are interested in" >>speedtest.py
+echo "    \"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    request = build_request('://www.speedtest.net/speedtest-config.php')" >>speedtest.py
+echo "    uh, e = catch_request(request)" >>speedtest.py
+echo "    if e:" >>speedtest.py
+echo "        print_('Could not retrieve speedtest.net configuration: %s' % e)" >>speedtest.py
+echo "        sys.exit(1)" >>speedtest.py
+echo "    configxml = []" >>speedtest.py
+echo "    while 1:" >>speedtest.py
+echo "        configxml.append(uh.read(10240))" >>speedtest.py
+echo "        if len(configxml[-1]) == 0:" >>speedtest.py
+echo "            break" >>speedtest.py
+echo "    if int(uh.code) != 200:" >>speedtest.py
+echo "        return None" >>speedtest.py
+echo "    uh.close()" >>speedtest.py
+echo "    try:" >>speedtest.py
+echo "        try:" >>speedtest.py
+echo "            root = ET.fromstring(''.encode().join(configxml))" >>speedtest.py
+echo "            config = {" >>speedtest.py
+echo "                'client': root.find('client').attrib," >>speedtest.py
+echo "                'times': root.find('times').attrib," >>speedtest.py
+echo "                'download': root.find('download').attrib," >>speedtest.py
+echo "                'upload': root.find('upload').attrib}" >>speedtest.py
+echo "        except AttributeError:  # Python3 branch" >>speedtest.py
+echo "            root = DOM.parseString(''.join(configxml))" >>speedtest.py
+echo "            config = {" >>speedtest.py
+echo "                'client': getAttributesByTagName(root, 'client')," >>speedtest.py
+echo "                'times': getAttributesByTagName(root, 'times')," >>speedtest.py
+echo "                'download': getAttributesByTagName(root, 'download')," >>speedtest.py
+echo "                'upload': getAttributesByTagName(root, 'upload')}" >>speedtest.py
+echo "    except SyntaxError:" >>speedtest.py
+echo "        print_('Failed to parse speedtest.net configuration')" >>speedtest.py
+echo "        sys.exit(1)" >>speedtest.py
+echo "    del root" >>speedtest.py
+echo "    del configxml" >>speedtest.py
+echo "    return config" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def closestServers(client, all=False):" >>speedtest.py
+echo "    \"\"\"Determine the 5 closest speedtest.net servers based on geographic" >>speedtest.py
+echo "    distance" >>speedtest.py
+echo "    \"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    urls = [" >>speedtest.py
+echo "        '://www.speedtest.net/speedtest-servers-static.php'," >>speedtest.py
+echo "        '://c.speedtest.net/speedtest-servers-static.php'," >>speedtest.py
+echo "        '://www.speedtest.net/speedtest-servers.php'," >>speedtest.py
+echo "        '://c.speedtest.net/speedtest-servers.php'," >>speedtest.py
+echo "    ]" >>speedtest.py
+echo "    errors = []" >>speedtest.py
+echo "    servers = {}" >>speedtest.py
+echo "    for url in urls:" >>speedtest.py
+echo "        try:" >>speedtest.py
+echo "            request = build_request(url)" >>speedtest.py
+echo "            uh, e = catch_request(request)" >>speedtest.py
+echo "            if e:" >>speedtest.py
+echo "                errors.append('%s' % e)" >>speedtest.py
+echo "                raise SpeedtestCliServerListError" >>speedtest.py
+echo "            serversxml = []" >>speedtest.py
+echo "            while 1:" >>speedtest.py
+echo "                serversxml.append(uh.read(10240))" >>speedtest.py
+echo "                if len(serversxml[-1]) == 0:" >>speedtest.py
+echo "                    break" >>speedtest.py
+echo "            if int(uh.code) != 200:" >>speedtest.py
+echo "                uh.close()" >>speedtest.py
+echo "                raise SpeedtestCliServerListError" >>speedtest.py
+echo "            uh.close()" >>speedtest.py
+echo "            try:" >>speedtest.py
+echo "                try:" >>speedtest.py
+echo "                    root = ET.fromstring(''.encode().join(serversxml))" >>speedtest.py
+echo "                    elements = root.getiterator('server')" >>speedtest.py
+echo "                except AttributeError:  # Python3 branch" >>speedtest.py
+echo "                    root = DOM.parseString(''.join(serversxml))" >>speedtest.py
+echo "                    elements = root.getElementsByTagName('server')" >>speedtest.py
+echo "            except SyntaxError:" >>speedtest.py
+echo "                raise SpeedtestCliServerListError" >>speedtest.py
+echo "            for server in elements:" >>speedtest.py
+echo "                try:" >>speedtest.py
+echo "                    attrib = server.attrib" >>speedtest.py
+echo "                except AttributeError:" >>speedtest.py
+echo "                    attrib = dict(list(server.attributes.items()))" >>speedtest.py
+echo "                d = distance([float(client['lat'])," >>speedtest.py
+echo "                              float(client['lon'])]," >>speedtest.py
+echo "                             [float(attrib.get('lat'))," >>speedtest.py
+echo "                              float(attrib.get('lon'))])" >>speedtest.py
+echo "                attrib['d'] = d" >>speedtest.py
+echo "                if d not in servers:" >>speedtest.py
+echo "                    servers[d] = [attrib]" >>speedtest.py
+echo "                else:" >>speedtest.py
+echo "                    servers[d].append(attrib)" >>speedtest.py
+echo "            del root" >>speedtest.py
+echo "            del serversxml" >>speedtest.py
+echo "            del elements" >>speedtest.py
+echo "        except SpeedtestCliServerListError:" >>speedtest.py
+echo "            continue" >>speedtest.py
+echo "" >>speedtest.py
+echo "        # We were able to fetch and parse the list of speedtest.net servers" >>speedtest.py
+echo "        if servers:" >>speedtest.py
+echo "            break" >>speedtest.py
+echo "" >>speedtest.py
+echo "    if not servers:" >>speedtest.py
+echo "        print_('Failed to retrieve list of speedtest.net servers:\n\n %s' %" >>speedtest.py
+echo "               '\n'.join(errors))" >>speedtest.py
+echo "        sys.exit(1)" >>speedtest.py
+echo "" >>speedtest.py
+echo "    closest = []" >>speedtest.py
+echo "    for d in sorted(servers.keys()):" >>speedtest.py
+echo "        for s in servers[d]:" >>speedtest.py
+echo "            closest.append(s)" >>speedtest.py
+echo "            if len(closest) == 5 and not all:" >>speedtest.py
+echo "                break" >>speedtest.py
+echo "        else:" >>speedtest.py
+echo "            continue" >>speedtest.py
+echo "        break" >>speedtest.py
+echo "" >>speedtest.py
+echo "    del servers" >>speedtest.py
+echo "    return closest" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def getBestServer(servers):" >>speedtest.py
+echo "    \"\"\"Perform a speedtest.net latency request to determine which" >>speedtest.py
+echo "    speedtest.net server has the lowest latency" >>speedtest.py
+echo "    \"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    results = {}" >>speedtest.py
+echo "    for server in servers:" >>speedtest.py
+echo "        cum = []" >>speedtest.py
+echo "        url = '%s/latency.txt' % os.path.dirname(server['url'])" >>speedtest.py
+echo "        urlparts = urlparse(url)" >>speedtest.py
+echo "        for i in range(0, 3):" >>speedtest.py
+echo "            try:" >>speedtest.py
+echo "                if urlparts[0] == 'https':" >>speedtest.py
+echo "                    h = HTTPSConnection(urlparts[1])" >>speedtest.py
+echo "                else:" >>speedtest.py
+echo "                    h = HTTPConnection(urlparts[1])" >>speedtest.py
+echo "                headers = {'User-Agent': user_agent}" >>speedtest.py
+echo "                start = timeit.default_timer()" >>speedtest.py
+echo "                h.request(\"GET\", urlparts[2], headers=headers)" >>speedtest.py
+echo "                r = h.getresponse()" >>speedtest.py
+echo "                total = (timeit.default_timer() - start)" >>speedtest.py
+echo "            except (HTTPError, URLError, socket.error):" >>speedtest.py
+echo "                cum.append(3600)" >>speedtest.py
+echo "                continue" >>speedtest.py
+echo "            text = r.read(9)" >>speedtest.py
+echo "            if int(r.status) == 200 and text == 'test=test'.encode():" >>speedtest.py
+echo "                cum.append(total)" >>speedtest.py
+echo "            else:" >>speedtest.py
+echo "                cum.append(3600)" >>speedtest.py
+echo "            h.close()" >>speedtest.py
+echo "        avg = round((sum(cum) / 6) * 1000, 3)" >>speedtest.py
+echo "        results[avg] = server" >>speedtest.py
+echo "    fastest = sorted(results.keys())[0]" >>speedtest.py
+echo "    best = results[fastest]" >>speedtest.py
+echo "    best['latency'] = fastest" >>speedtest.py
+echo "" >>speedtest.py
+echo "    return best" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def ctrl_c(signum, frame):" >>speedtest.py
+echo "    \"\"\"Catch Ctrl-C key sequence and set a shutdown_event for our threaded" >>speedtest.py
+echo "    operations" >>speedtest.py
+echo "    \"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    global shutdown_event" >>speedtest.py
+echo "    shutdown_event.set()" >>speedtest.py
+echo "    raise SystemExit('\nCancelling...')" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def version():" >>speedtest.py
+echo "    \"\"\"Print the version\"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    raise SystemExit(__version__)" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def speedtest():" >>speedtest.py
+echo "    \"\"\"Run the full speedtest.net test\"\"\"" >>speedtest.py
+echo "" >>speedtest.py
+echo "    global shutdown_event, source, scheme" >>speedtest.py
+echo "    shutdown_event = threading.Event()" >>speedtest.py
+echo "" >>speedtest.py
+echo "    signal.signal(signal.SIGINT, ctrl_c)" >>speedtest.py
+echo "" >>speedtest.py
+echo "    description = (" >>speedtest.py
+echo "        'Command line interface for testing internet bandwidth using '" >>speedtest.py
+echo "        'speedtest.net.\n'" >>speedtest.py
+echo "        '------------------------------------------------------------'" >>speedtest.py
+echo "        '--------------\n'" >>speedtest.py
+echo "        'https://github.com/sivel/speedtest-cli')" >>speedtest.py
+echo "" >>speedtest.py
+echo "    parser = ArgParser(description=description)" >>speedtest.py
+echo "    # Give optparse.OptionParser an \`add_argument\` method for" >>speedtest.py
+echo "    # compatibility with argparse.ArgumentParser" >>speedtest.py
+echo "    try:" >>speedtest.py
+echo "        parser.add_argument = parser.add_option" >>speedtest.py
+echo "    except AttributeError:" >>speedtest.py
+echo "        pass" >>speedtest.py
+echo "    parser.add_argument('--bytes', dest='units', action='store_const'," >>speedtest.py
+echo "                        const=('byte', 1), default=('bit', 8)," >>speedtest.py
+echo "                        help='Display values in bytes instead of bits. Does '" >>speedtest.py
+echo "                             'not affect the image generated by --share')" >>speedtest.py
+echo "    parser.add_argument('--share', action='store_true'," >>speedtest.py
+echo "                        help='Generate and provide a URL to the speedtest.net '" >>speedtest.py
+echo "                             'share results image')" >>speedtest.py
+echo "    parser.add_argument('--simple', action='store_true'," >>speedtest.py
+echo "                        help='Suppress verbose output, only show basic '" >>speedtest.py
+echo "                             'information')" >>speedtest.py
+echo "    parser.add_argument('--list', action='store_true'," >>speedtest.py
+echo "                        help='Display a list of speedtest.net servers '" >>speedtest.py
+echo "                             'sorted by distance')" >>speedtest.py
+echo "    parser.add_argument('--server', help='Specify a server ID to test against')" >>speedtest.py
+echo "    parser.add_argument('--mini', help='URL of the Speedtest Mini server')" >>speedtest.py
+echo "    parser.add_argument('--source', help='Source IP address to bind to')" >>speedtest.py
+echo "    parser.add_argument('--timeout', default=10, type=int," >>speedtest.py
+echo "                        help='HTTP timeout in seconds. Default 10')" >>speedtest.py
+echo "    parser.add_argument('--secure', action='store_true'," >>speedtest.py
+echo "                        help='Use HTTPS instead of HTTP when communicating '" >>speedtest.py
+echo "                             'with speedtest.net operated servers')" >>speedtest.py
+echo "    parser.add_argument('--version', action='store_true'," >>speedtest.py
+echo "                        help='Show the version number and exit')" >>speedtest.py
+echo "" >>speedtest.py
+echo "    options = parser.parse_args()" >>speedtest.py
+echo "    if isinstance(options, tuple):" >>speedtest.py
+echo "        args = options[0]" >>speedtest.py
+echo "    else:" >>speedtest.py
+echo "        args = options" >>speedtest.py
+echo "    del options" >>speedtest.py
+echo "" >>speedtest.py
+echo "    # Print the version and exit" >>speedtest.py
+echo "    if args.version:" >>speedtest.py
+echo "        version()" >>speedtest.py
+echo "" >>speedtest.py
+echo "    socket.setdefaulttimeout(args.timeout)" >>speedtest.py
+echo "" >>speedtest.py
+echo "    # Pre-cache the user agent string" >>speedtest.py
+echo "    build_user_agent()" >>speedtest.py
+echo "" >>speedtest.py
+echo "    # If specified bind to a specific IP address" >>speedtest.py
+echo "    if args.source:" >>speedtest.py
+echo "        source = args.source" >>speedtest.py
+echo "        socket.socket = bound_socket" >>speedtest.py
+echo "" >>speedtest.py
+echo "    if args.secure:" >>speedtest.py
+echo "        scheme = 'https'" >>speedtest.py
+echo "" >>speedtest.py
+echo "    if not args.simple:" >>speedtest.py
+echo "        print_('Retrieving speedtest.net configuration...')" >>speedtest.py
+echo "    try:" >>speedtest.py
+echo "        config = getConfig()" >>speedtest.py
+echo "    except URLError:" >>speedtest.py
+echo "        print_('Cannot retrieve speedtest configuration')" >>speedtest.py
+echo "        sys.exit(1)" >>speedtest.py
+echo "" >>speedtest.py
+echo "    if not args.simple:" >>speedtest.py
+echo "        print_('Retrieving speedtest.net server list...')" >>speedtest.py
+echo "    if args.list or args.server:" >>speedtest.py
+echo "        servers = closestServers(config['client'], True)" >>speedtest.py
+echo "        if args.list:" >>speedtest.py
+echo "            serverList = []" >>speedtest.py
+echo "            for server in servers:" >>speedtest.py
+echo "                line = ('%(id)4s) %(sponsor)s (%(name)s, %(country)s) '" >>speedtest.py
+echo "                        '[%(d)0.2f km]' % server)" >>speedtest.py
+echo "                serverList.append(line)" >>speedtest.py
+echo "            print_('\n'.join(serverList).encode('utf-8', 'ignore'))" >>speedtest.py
+echo "            sys.exit(0)" >>speedtest.py
+echo "    else:" >>speedtest.py
+echo "        servers = closestServers(config['client'])" >>speedtest.py
+echo "" >>speedtest.py
+echo "    if not args.simple:" >>speedtest.py
+echo "        print_('Testing from %(isp)s (%(ip)s)...' % config['client'])" >>speedtest.py
+echo "" >>speedtest.py
+echo "    if args.server:" >>speedtest.py
+echo "        try:" >>speedtest.py
+echo "            best = getBestServer(filter(lambda x: x['id'] == args.server," >>speedtest.py
+echo "                                        servers))" >>speedtest.py
+echo "        except IndexError:" >>speedtest.py
+echo "            print_('Invalid server ID')" >>speedtest.py
+echo "            sys.exit(1)" >>speedtest.py
+echo "    elif args.mini:" >>speedtest.py
+echo "        name, ext = os.path.splitext(args.mini)" >>speedtest.py
+echo "        if ext:" >>speedtest.py
+echo "            url = os.path.dirname(args.mini)" >>speedtest.py
+echo "        else:" >>speedtest.py
+echo "            url = args.mini" >>speedtest.py
+echo "        urlparts = urlparse(url)" >>speedtest.py
+echo "        try:" >>speedtest.py
+echo "            request = build_request(args.mini)" >>speedtest.py
+echo "            f = urlopen(request)" >>speedtest.py
+echo "        except:" >>speedtest.py
+echo "            print_('Invalid Speedtest Mini URL')" >>speedtest.py
+echo "            sys.exit(1)" >>speedtest.py
+echo "        else:" >>speedtest.py
+echo "            text = f.read()" >>speedtest.py
+echo "            f.close()" >>speedtest.py
+echo "        extension = re.findall('upload_extension: \"([^\"]+)\"', text.decode())" >>speedtest.py
+echo "        if not extension:" >>speedtest.py
+echo "            for ext in ['php', 'asp', 'aspx', 'jsp']:" >>speedtest.py
+echo "                try:" >>speedtest.py
+echo "                    request = build_request('%s/speedtest/upload.%s' %" >>speedtest.py
+echo "                                            (args.mini, ext))" >>speedtest.py
+echo "                    f = urlopen(request)" >>speedtest.py
+echo "                except:" >>speedtest.py
+echo "                    pass" >>speedtest.py
+echo "                else:" >>speedtest.py
+echo "                    data = f.read().strip()" >>speedtest.py
+echo "                    if (f.code == 200 and" >>speedtest.py
+echo "                            len(data.splitlines()) == 1 and" >>speedtest.py
+echo "                            re.match('size=[0-9]', data)):" >>speedtest.py
+echo "                        extension = [ext]" >>speedtest.py
+echo "                        break" >>speedtest.py
+echo "        if not urlparts or not extension:" >>speedtest.py
+echo "            print_('Please provide the full URL of your Speedtest Mini server')" >>speedtest.py
+echo "            sys.exit(1)" >>speedtest.py
+echo "        servers = [{" >>speedtest.py
+echo "            'sponsor': 'Speedtest Mini'," >>speedtest.py
+echo "            'name': urlparts[1]," >>speedtest.py
+echo "            'd': 0," >>speedtest.py
+echo "            'url': '%s/speedtest/upload.%s' % (url.rstrip('/'), extension[0])," >>speedtest.py
+echo "            'latency': 0," >>speedtest.py
+echo "            'id': 0" >>speedtest.py
+echo "        }]" >>speedtest.py
+echo "        try:" >>speedtest.py
+echo "            best = getBestServer(servers)" >>speedtest.py
+echo "        except:" >>speedtest.py
+echo "            best = servers[0]" >>speedtest.py
+echo "    else:" >>speedtest.py
+echo "        if not args.simple:" >>speedtest.py
+echo "            print_('Selecting best server based on latency...')" >>speedtest.py
+echo "        best = getBestServer(servers)" >>speedtest.py
+echo "" >>speedtest.py
+echo "    if not args.simple:" >>speedtest.py
+echo "        print_(('Hosted by %(sponsor)s (%(name)s) [%(d)0.2f km]: '" >>speedtest.py
+echo "               '%(latency)s ms' % best).encode('utf-8', 'ignore'))" >>speedtest.py
+echo "    else:" >>speedtest.py
+echo "        print_('Ping: %(latency)s ms' % best)" >>speedtest.py
+echo "" >>speedtest.py
+echo "    sizes = [350, 500, 750, 1000, 1500, 2000, 2500, 3000, 3500, 4000]" >>speedtest.py
+echo "    urls = []" >>speedtest.py
+echo "    for size in sizes:" >>speedtest.py
+echo "        for i in range(0, 4):" >>speedtest.py
+echo "            urls.append('%s/random%sx%s.jpg' %" >>speedtest.py
+echo "                        (os.path.dirname(best['url']), size, size))" >>speedtest.py
+echo "    if not args.simple:" >>speedtest.py
+echo "        print_('Testing download speed', end='')" >>speedtest.py
+echo "    dlspeed = downloadSpeed(urls, args.simple)" >>speedtest.py
+echo "    if not args.simple:" >>speedtest.py
+echo "        print_()" >>speedtest.py
+echo "    print_('Download: %0.2f M%s/s' %" >>speedtest.py
+echo "           ((dlspeed / 1000 / 1000) * args.units[1], args.units[0]))" >>speedtest.py
+echo "" >>speedtest.py
+echo "    sizesizes = [int(.25 * 1000 * 1000), int(.5 * 1000 * 1000)]" >>speedtest.py
+echo "    sizes = []" >>speedtest.py
+echo "    for size in sizesizes:" >>speedtest.py
+echo "        for i in range(0, 25):" >>speedtest.py
+echo "            sizes.append(size)" >>speedtest.py
+echo "    if not args.simple:" >>speedtest.py
+echo "        print_('Testing upload speed', end='')" >>speedtest.py
+echo "    ulspeed = uploadSpeed(best['url'], sizes, args.simple)" >>speedtest.py
+echo "    if not args.simple:" >>speedtest.py
+echo "        print_()" >>speedtest.py
+echo "    print_('Upload: %0.2f M%s/s' %" >>speedtest.py
+echo "           ((ulspeed / 1000 / 1000) * args.units[1], args.units[0]))" >>speedtest.py
+echo "" >>speedtest.py
+echo "    if args.share and args.mini:" >>speedtest.py
+echo "        print_('Cannot generate a speedtest.net share results image while '" >>speedtest.py
+echo "               'testing against a Speedtest Mini server')" >>speedtest.py
+echo "    elif args.share:" >>speedtest.py
+echo "        dlspeedk = int(round((dlspeed / 1000) * 8, 0))" >>speedtest.py
+echo "        ping = int(round(best['latency'], 0))" >>speedtest.py
+echo "        ulspeedk = int(round((ulspeed / 1000) * 8, 0))" >>speedtest.py
+echo "" >>speedtest.py
+echo "        # Build the request to send results back to speedtest.net" >>speedtest.py
+echo "        # We use a list instead of a dict because the API expects parameters" >>speedtest.py
+echo "        # in a certain order" >>speedtest.py
+echo "        apiData = [" >>speedtest.py
+echo "            'download=%s' % dlspeedk," >>speedtest.py
+echo "            'ping=%s' % ping," >>speedtest.py
+echo "            'upload=%s' % ulspeedk," >>speedtest.py
+echo "            'promo='," >>speedtest.py
+echo "            'startmode=%s' % 'pingselect'," >>speedtest.py
+echo "            'recommendedserverid=%s' % best['id']," >>speedtest.py
+echo "            'accuracy=%s' % 1," >>speedtest.py
+echo "            'serverid=%s' % best['id']," >>speedtest.py
+echo "            'hash=%s' % md5(('%s-%s-%s-%s' %" >>speedtest.py
+echo "                             (ping, ulspeedk, dlspeedk, '297aae72'))" >>speedtest.py
+echo "                            .encode()).hexdigest()]" >>speedtest.py
+echo "" >>speedtest.py
+echo "        headers = {'Referer': 'http://c.speedtest.net/flash/speedtest.swf'}" >>speedtest.py
+echo "        request = build_request('://www.speedtest.net/api/api.php'," >>speedtest.py
+echo "                                data='&'.join(apiData).encode()," >>speedtest.py
+echo "                                headers=headers)" >>speedtest.py
+echo "        f, e = catch_request(request)" >>speedtest.py
+echo "        if e:" >>speedtest.py
+echo "            print_('Could not submit results to speedtest.net: %s' % e)" >>speedtest.py
+echo "            sys.exit(1)" >>speedtest.py
+echo "        response = f.read()" >>speedtest.py
+echo "        code = f.code" >>speedtest.py
+echo "        f.close()" >>speedtest.py
+echo "" >>speedtest.py
+echo "        if int(code) != 200:" >>speedtest.py
+echo "            print_('Could not submit results to speedtest.net')" >>speedtest.py
+echo "            sys.exit(1)" >>speedtest.py
+echo "" >>speedtest.py
+echo "        qsargs = parse_qs(response.decode())" >>speedtest.py
+echo "        resultid = qsargs.get('resultid')" >>speedtest.py
+echo "        if not resultid or len(resultid) != 1:" >>speedtest.py
+echo "            print_('Could not submit results to speedtest.net')" >>speedtest.py
+echo "            sys.exit(1)" >>speedtest.py
+echo "" >>speedtest.py
+echo "        print_('Share results: %s://www.speedtest.net/result/%s.png' %" >>speedtest.py
+echo "               (scheme, resultid[0]))" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "def main():" >>speedtest.py
+echo "    try:" >>speedtest.py
+echo "        speedtest()" >>speedtest.py
+echo "    except KeyboardInterrupt:" >>speedtest.py
+echo "        print_('\nCancelling...')" >>speedtest.py
+echo "" >>speedtest.py
+echo "" >>speedtest.py
+echo "if __name__ == '__main__':" >>speedtest.py
+echo "    main()" >>speedtest.py
+echo "" >>speedtest.py
+echo "# vim:ts=4:sw=4:expandtab" >>speedtest.py
+#然后执行刚才生成的文件，--server是固定以那个服务器来测速服务器来实验的，可以不用加--server参数。
+python speedtest.py --server=5081
+sleep 3
+#删除生成的py文件。
+rm -f speedtest.py

@@ -1,0 +1,64 @@
+#!/bin/bash
+#产生随机数函数
+rand() {
+	index=0
+	str=""
+	for i in {a..z}; do arr[index]=${i}; index=`expr ${index} + 1`; done
+	for i in {A..Z}; do arr[index]=${i}; index=`expr ${index} + 1`; done
+	for i in {0..9}; do arr[index]=${i}; index=`expr ${index} + 1`; done
+	for i in {1..8}; do str="$str${arr[$RANDOM%$index]}"; done
+	echo ${str}
+}
+
+if [ -f "/tmp/xiaoyu.vnc.script" ];then
+	install_VNC
+	exit
+fi
+clear
+echo 此操作会花费比较多的时间，以网速和配置来说。
+yum install epel-release -y
+yum clean all
+yum groupinstall "X Window System" -y
+yum install gnome-classic-session gnome-terminal nautilus-open-terminal control-center liberation-mono-fonts -y
+
+#设置开机默认图形界面
+unlink /etc/systemd/system/default.target
+ln -sf /lib/systemd/system/graphical.target /etc/systemd/system/default.target
+clear
+echo 
+echo 要重启下服务器哦。问下客户能重启不，可以重启的话，你手动输入reboot重启吧。
+echo 重启后再运行本程序
+echo 1>/tmp/xiaoyu.vnc.script
+exit
+
+
+install_VNC{
+#安装VNC服务
+yum install tigervnc-server -y
+
+ #设置VNC密码
+vncpwd=`rand`
+read -p "Please input VNC password(Default:${vncpwd})" tmpvncpwd
+[ ! -z ${tmpvncpwd} ] && vncpwd=${tmpvncpwd}
+
+ #配置VNC
+cp /lib/systemd/system/vncserver@.service /etc/systemd/system/vncserver@:1.service
+sed -i 's/<USER>/root/g' /etc/systemd/system/vncserver@:1.service
+sed -i 's/PIDFile=\/home/PIDFile=/g' /etc/systemd/system/vncserver@:1.service
+
+systemctl daemon-reload
+vncpasswd <<EOF
+${vncpwd}
+${vncpwd}
+EOF
+
+#开启服务
+systemctl enable vncserver@:1.service
+
+#开始程序
+systemctl start vncserver@:1.service
+
+#设置防火墙
+firewall-cmd --permanent --add-service vnc-server
+systemctl restart firewalld.service
+}

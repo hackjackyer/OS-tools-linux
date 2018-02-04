@@ -1,0 +1,22 @@
+#!/bin/bash
+read -p "请输入要设置的计算机名(限制只能15个字符，只能是大小写和减号)" computername
+yum install samba -y
+mv /etc/samba/smb.conf /etc/samba/smb.conf.raw
+echo [global]>/etc/samba/smb.conf
+echo workgroup = WORKGROUP>>/etc/samba/smb.conf
+echo netbios name = $computername>>/etc/samba/smb.conf
+echo log file = /var/log/samba/log.%m>>/etc/samba/smb.conf
+echo max log size = 50>>/etc/samba/smb.conf
+echo security = user>>/etc/samba/smb.conf
+echo passdb backend = tdbsam>>/etc/samba/smb.conf
+echo wins server = 192.168.18.41>>/etc/samba/smb.conf
+echo load printers = no>>/etc/samba/smb.conf
+chkconfig smb on
+chkconfig nmb on
+iptables -A INPUT  -p udp --dport 137 -j ACCEPT
+iptables -A INPUT  -p udp --dport 138 -j ACCEPT
+service iptables save
+service smb restart
+service nmb restart
+clear
+echo 可以了。下次可以直接用$computername替代IP来远程你的服务器了。随便IP怎么变。

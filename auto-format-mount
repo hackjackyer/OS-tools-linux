@@ -1,0 +1,37 @@
+#!/bin/bash
+#by hackjackyer
+echo syncing time
+rpm -qa ntp |grep ntp|| yum install -y ntp
+ntpdate 8.8.8.8
+hwclock -w
+
+clear
+echo formating sdb
+cbanben=`rpm -q centos-release |awk -F - '{print $3}'`
+if [ $cbanben -eq 7 ]; then
+fs=xfs
+fi
+
+if [ $cbanben -eq 6 ]; then
+fs=ext4
+fi
+
+if [ $cbanben -eq 5 ]; then
+fs=ext3
+fi
+
+dd if=/dev/sdb of=/dev/backsdb_img_count1024 count=1024
+dd if=/dev/zero of=/dev/sdb count=1024
+#因为fdisk需要手动进行输入操作，所以这里用EOF来操作需要输入的指令。每行一个，如果直接按Enter的，则那行留空
+fdisk /dev/sdb << EOF
+n
+p
+1
+
+
+w
+EOF
+mkfs.$fs /dev/sdb1
+mkdir /data
+mount /dev/sdb1 /data
+echo -e /dev/sdb1"\t"/data"\t"$fs"\t"defaults"\t"0 0 >>/etc/fstab
