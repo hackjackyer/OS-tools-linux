@@ -1,0 +1,11 @@
+#!/bin/bash
+ipaddr=`curl http://www.icanhazip.com/`
+pwdd=`cat /dev/urandom | head -1 | md5sum | head -c 12`
+echo "$pwdd" | passwd --stdin root
+clear
+echo -e "=================================================================="
+echo -e "服务器IP: $ipaddr"
+echo -e "服务器远程端口:22"
+echo -e "服务器账号root"
+echo -e "服务器密码$pwdd"
+echo -e "=================================================================="
