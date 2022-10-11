@@ -260,3 +260,6 @@ virt-install \
 --features kvm_hidden=on,smm=on \
 --tpm backend.type=emulator,backend.version=2.0,model=tpm-tis \
 --boot loader=/usr/share/edk2/ovmf/OVMF_CODE.secboot.fd,loader_ro=yes,loader_type=pflash,nvram_template=/usr/share/edk2/ovmf/OVMF_VARS.secboot.fd 
+
+# 连接图形界面
+virt-viewer --connect qemu:///system --wait Windows_11
