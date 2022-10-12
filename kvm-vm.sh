@@ -263,3 +263,9 @@ virt-install \
 
 # 连接图形界面
 virt-viewer --connect qemu:///system --wait Windows_11
+
+# 增加串口
+virsh edit vmname
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
