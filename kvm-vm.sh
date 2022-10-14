@@ -299,3 +299,7 @@ virsh dumpxml vm |grep 'source file'
 
 # 另一个方法
 virt-customize -a /var/kvm/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2 --root-password password:你的密码
+
+# 安装或者导入时自动生成密码，virt-install加入下面的参数
+# 参考https://github.com/virt-manager/virt-manager/blob/main/man/virt-install.rst#--cloud-init
+--cloud-init root-password-generate=on,disable=on
