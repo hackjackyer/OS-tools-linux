@@ -279,3 +279,20 @@ virsh edit vmname
       <address type='virtio-serial' controller='0' bus='0' port='1'/>
     </channel>
 
+# 虚拟机重置密码
+dnf install libguestfs-tools
+virsh shutdown vm
+virsh dumpxml vm |grep 'source file'
+# 查看虚拟机磁盘文件
+# 生成秘文
+​openssl passwd -1 密码
+# 复制生成的密文
+​guestfish --rw -a /xx/xx/xx.img
+​><fs>中依次输入
+​launch
+​list-filesystems
+​mount /dev/vda /
+​vi /etc/shadow
+粘贴密文
+​quit
+​virsh start vm
