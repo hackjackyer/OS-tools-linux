@@ -296,3 +296,6 @@ virsh dumpxml vm |grep 'source file'
 粘贴密文
 ​quit
 ​virsh start vm
+
+# 另一个方法
+virt-customize -a /var/kvm/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2 --root-password password:你的密码
