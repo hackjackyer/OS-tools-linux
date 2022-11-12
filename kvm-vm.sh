@@ -303,3 +303,19 @@ virt-customize -a /var/kvm/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2 --root-p
 # 安装或者导入时自动生成密码，virt-install加入下面的参数
 # 参考https://github.com/virt-manager/virt-manager/blob/main/man/virt-install.rst#--cloud-init
 --cloud-init root-password-generate=on,disable=on
+
+# cloud-init 配置注入数据
+cat >user-data <<EOF
+cloud-config
+password: password
+chpasswd:
+  expire: False
+ssh_pwauth: True
+ssh_authorized_keys:
+  - ssh-rsa AAAA...UlIsqdaO+w==
+EOF
+cloud-localds seed.img user-data
+# 使用注入数据启动ubuntu,这样使用密码授权，且密码已知。
+qemu-system-x86_64 -m 1024 -net nic -net user \
+    -hda ubuntu-20.04-server-cloudimg-amd64.img \
+    -hdb seed.img
