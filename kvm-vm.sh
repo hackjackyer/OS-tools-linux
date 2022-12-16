@@ -325,3 +325,13 @@ genisoimage -output seed.img -volid cidata -joliet -rock user-data meta-data
 qemu-system-x86_64 -m 1024 -net nic -net user \
     -hda ubuntu-20.04-server-cloudimg-amd64.img \
     -hdb seed.img
+
+# 或者直接使用--cloud-init参数加载文件
+virt-install \
+--name ubuntu01 \
+--ram 2048 \
+--disk path=/var/kvm/images/kinetic-server-cloudimg-amd64-disk-kvm.img \
+--vcpus 2 \
+--os-variant ubuntu22.04 \
+--network bridge=br0 \
+--cloud-init meta-data=/var/kvm/images/meta-data,user-data=/var/kvm/images/user-data,disable=on
