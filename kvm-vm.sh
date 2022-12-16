@@ -335,3 +335,6 @@ virt-install \
 --os-variant ubuntu22.04 \
 --network bridge=br0 \
 --cloud-init meta-data=/var/kvm/images/meta-data,user-data=/var/kvm/images/user-data,disable=on
+
+# 参考文件
+>https://stafwag.github.io/blog/blog/2019/03/03/howto-use-centos-cloud-images-with-cloud-init/
