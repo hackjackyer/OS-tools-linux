@@ -305,9 +305,11 @@ virt-customize -a /var/kvm/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2 --root-p
 --cloud-init root-password-generate=on,disable=on
 
 # cloud-init 配置注入数据
+# 密码是密文。用下面的python语句生成密文。
+python -c 'import crypt,getpass; print(crypt.crypt(getpass.getpass(), crypt.mksalt(crypt.METHOD_SHA512)))'
 cat >user-data <<EOF
 cloud-config
-password: password
+password: password密文
 chpasswd:
   expire: False
 ssh_pwauth: True
