@@ -314,7 +314,11 @@ ssh_pwauth: True
 ssh_authorized_keys:
   - ssh-rsa AAAA...UlIsqdaO+w==
 EOF
+# ubuntu使用下面的命令
 cloud-localds seed.img user-data
+# 或在使用下面命令生成配置镜像，比较通用
+yum install genisoimage
+genisoimage -output seed.img -volid cidata -joliet -rock user-data meta-data
 # 使用注入数据启动ubuntu,这样使用密码授权，且密码已知。
 qemu-system-x86_64 -m 1024 -net nic -net user \
     -hda ubuntu-20.04-server-cloudimg-amd64.img \
